@@ -1,4 +1,11 @@
-﻿using UnityEngine;
+﻿#region header
+//----------------------------------------------
+// ScrollRectExtend.cs
+// This stupid code is created by StupidWizard on 2017/01/10.
+//----------------------------------------------
+#endregion
+
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System;
