@@ -78,6 +78,7 @@ namespace StupidWizard.UI {
 				mContent.localPosition = contentPos;
 			} else {
 				mScrollRect.velocity = mRatioV * new Vector2(deltaX, 0);
+				KickMove(deltaX < 0);
 			}
 		}
 
@@ -96,6 +97,7 @@ namespace StupidWizard.UI {
 				mContent.localPosition = contentPos;
 			} else {
 				mScrollRect.velocity = mRatioV * new Vector2(0, deltaY);
+				KickMove(deltaY > 0);
 			}
 		}
 
@@ -211,13 +213,13 @@ namespace StupidWizard.UI {
 		/// Kick the move horizontal start.
 		/// </summary>
 		/// <param name="isKickToRight">If set to <c>true</c> scroll to show right side.</param>
-		void KickMove(bool isKickToRight) {
+		void KickMove(bool isKickToNext) {
 			var contentPos = mContent.anchoredPosition;
 
 			if (mScrollRect.horizontal) {
-				contentPos.x += Epsinol * (isKickToRight? -1 : 1);
+				contentPos.x += Epsinol * (isKickToNext? -1 : 1);
 			} else {
-				contentPos.y += Epsinol * (isKickToRight? 1 : -1);
+				contentPos.y += Epsinol * (isKickToNext? 1 : -1);
 			}
 
 			mContent.anchoredPosition = contentPos;
@@ -259,10 +261,10 @@ namespace StupidWizard.UI {
 				int maxId = 0;
 				if (mScrollRect.horizontal) {
 					float bound = mViewport.rect.width - mCellSize.x;
-					maxId = Mathf.Max(0, Mathf.RoundToInt((mContent.rect.width - bound)/mCellSize.x) - 1);
+					maxId = Mathf.Max(0, (int)((mContent.rect.width - bound)/mCellSize.x + 0.1f) - 1);
 				} else {
 					float bound = mViewport.rect.height - mCellSize.y;
-					maxId = Mathf.Max(0, Mathf.RoundToInt((mContent.rect.height - bound)/mCellSize.y) - 1);
+					maxId = Mathf.Max(0, (int)((mContent.rect.height - bound)/mCellSize.y + 0.1f) - 1);
 				}
 
 				return maxId;
