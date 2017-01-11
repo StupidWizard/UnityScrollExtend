@@ -87,7 +87,7 @@ namespace StupidWizard.UI {
 
 			int targetIdInt = CalculateNearestTargetId();
 
-			float targetY = -targetIdInt * mCellSize.y;
+			float targetY = targetIdInt * mCellSize.y;
 			float deltaY = targetY - curPosY;
 
 			if (Mathf.Abs(deltaY) < mDeltaPosThreshold) {
@@ -217,7 +217,7 @@ namespace StupidWizard.UI {
 			if (mScrollRect.horizontal) {
 				contentPos.x += Epsinol * (isKickToRight? -1 : 1);
 			} else {
-				contentPos.y += Epsinol * (isKickToRight? -1 : 1);
+				contentPos.y += Epsinol * (isKickToRight? 1 : -1);
 			}
 
 			mContent.anchoredPosition = contentPos;
@@ -231,8 +231,15 @@ namespace StupidWizard.UI {
 		/// <value>The current identifier.</value>
 		public int CurrentId {
 			get {
-				float curPosX = mContent.localPosition.x;
-				float targetIdFloat = -curPosX / mCellSize.x;
+				float targetIdFloat = 0;
+				if (mScrollRect.horizontal) {
+					float curPosX = mContent.localPosition.x;
+					targetIdFloat = -curPosX / mCellSize.x;
+				} else {
+					float curPosY = mContent.localPosition.y;
+					targetIdFloat = curPosY / mCellSize.y;
+				}
+
 				int targetIdInt = Mathf.RoundToInt(targetIdFloat);
 
 				targetIdInt = Mathf.Min(targetIdInt, MaxId);
@@ -249,8 +256,15 @@ namespace StupidWizard.UI {
 		/// <value>The max identifier.</value>
 		int MaxId {
 			get {
-				float bound = mViewport.rect.width - mCellSize.x;
-				int maxId = Mathf.Max(0, Mathf.RoundToInt((mContent.rect.width - bound)/mCellSize.x) - 1);
+				int maxId = 0;
+				if (mScrollRect.horizontal) {
+					float bound = mViewport.rect.width - mCellSize.x;
+					maxId = Mathf.Max(0, Mathf.RoundToInt((mContent.rect.width - bound)/mCellSize.x) - 1);
+				} else {
+					float bound = mViewport.rect.height - mCellSize.y;
+					maxId = Mathf.Max(0, Mathf.RoundToInt((mContent.rect.height - bound)/mCellSize.y) - 1);
+				}
+
 				return maxId;
 			}
 		}
