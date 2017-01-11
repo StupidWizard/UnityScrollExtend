@@ -11,10 +11,20 @@ using System.Collections;
 using System;
 
 namespace StupidWizard.UI {
-	
+
+	[RequireComponent(typeof (ScrollRectController))]
 	public class ScrollRectExtend : ScrollRect {
 
 		public Action<bool> onDragEventListenerSp;
+
+		protected override void Start ()
+		{
+			base.Start ();
+			if (horizontal || !vertical) {
+				horizontal = true;
+				vertical = false;
+			}
+		}
 
 		public override void OnBeginDrag (UnityEngine.EventSystems.PointerEventData eventData)
 		{

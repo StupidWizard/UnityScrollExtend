@@ -13,6 +13,7 @@ using System;
 namespace StupidWizard.UI {
 	public class ScrollRectController : MonoBehaviour {
 		private const float Epsinol = 2.0f;
+		private const float mRatioV = 10;
 
 		public enum FocusState {
 			IDLE = 0,
@@ -21,13 +22,12 @@ namespace StupidWizard.UI {
 		}
 
 		FocusState mState = FocusState.IDLE;
+		ScrollRectExtend mScrollRect;
 
-		[SerializeField] ScrollRectExtend mScrollRect;
-		[SerializeField] GameObject[] mScrollArrows;
+		[SerializeField] GameObject mBackArrow;
+		[SerializeField] GameObject mNextArrow;
+
 		[SerializeField] Vector2 mCellSize = new Vector2(240, 320);
-		[SerializeField] float mVelocityThreshold = 240;
-		[SerializeField] float mDeltaPosThreshold = 1;
-		[SerializeField] float mRatioV = 10;
 
 		int mForceTargetId = -1;
 
@@ -35,6 +35,8 @@ namespace StupidWizard.UI {
 
 		// Use this for initialization
 		void Start () {
+			mScrollRect = GetComponent<ScrollRectExtend>();
+
 			mScrollRect.onDragEventListenerSp += onDragEventListener;
 			OnReachCell += OnMyReachCell;
 		}
@@ -49,7 +51,11 @@ namespace StupidWizard.UI {
 				break;
 
 			case FocusState.UPDATE_FOCUS:
-				UpdateFocus();
+				if (mScrollRect.horizontal) {
+					UpdateFocusX();
+				} else {
+					UpdateFocusY();
+				}
 				break;
 
 			default:	// idle - nothing to do
@@ -57,33 +63,61 @@ namespace StupidWizard.UI {
 			}
 		}
 			
-		void UpdateFocus() {
+		void UpdateFocusX() {
 			Vector3 contentPos = mContent.localPosition;
 			float curPosX = (mContent.localPosition.x);
 
-			int targetIdInt = CurrentId;
-			if (mForceTargetId >= 0) {
-				if (targetIdInt != mForceTargetId) {
-					targetIdInt = mForceTargetId;
-				} else {
-					mForceTargetId = -1;
-				}
-			}
+			int targetIdInt = CalculateNearestTargetId();
 
 			float targetX = -targetIdInt * mCellSize.x;
 			float deltaX = targetX - curPosX;
 
 			if (Mathf.Abs(deltaX) < mDeltaPosThreshold) {
-				mState = FocusState.IDLE;
-				if (OnReachCell != null) {
-					OnReachCell(targetIdInt);
-				}
-				mScrollRect.velocity = Vector2.zero;
+				Stop(targetIdInt);
 				contentPos.x = targetX;
 				mContent.localPosition = contentPos;
 			} else {
 				mScrollRect.velocity = mRatioV * new Vector2(deltaX, 0);
 			}
+		}
+
+		void UpdateFocusY() {
+			Vector3 contentPos = mContent.localPosition;
+			float curPosY = (mContent.localPosition.y);
+
+			int targetIdInt = CalculateNearestTargetId();
+
+			float targetY = -targetIdInt * mCellSize.y;
+			float deltaY = targetY - curPosY;
+
+			if (Mathf.Abs(deltaY) < mDeltaPosThreshold) {
+				Stop(targetIdInt);
+				contentPos.y = targetY;
+				mContent.localPosition = contentPos;
+			} else {
+				mScrollRect.velocity = mRatioV * new Vector2(0, deltaY);
+			}
+		}
+
+
+		void Stop(int idStop) {
+			mState = FocusState.IDLE;
+			if (OnReachCell != null) {
+				OnReachCell(idStop);
+			}
+			mScrollRect.velocity = Vector2.zero;
+		}
+
+		int CalculateNearestTargetId() {
+			int curId = CurrentId;
+			if (mForceTargetId >= 0) {
+				if (curId != mForceTargetId) {
+					return mForceTargetId;
+				} else {
+					mForceTargetId = -1;
+				}
+			}
+			return curId;
 		}
 
 
@@ -110,39 +144,41 @@ namespace StupidWizard.UI {
 		/// </summary>
 		/// <param name="id">Id of cell reached.</param>
 		void OnMyReachCell(int id) {
-			if (mScrollArrows != null && mScrollArrows.Length >= 2) {
-				mScrollArrows[0].SetActive(id > 0);
-				mScrollArrows[1].SetActive(id < MaxId);
+			if (mBackArrow != null) {
+				mBackArrow.SetActive(id > 0);
+			}
+			if (mNextArrow != null) {
+				mNextArrow.SetActive(id < MaxId);
 			}
 		}
 
 
 		/// <summary>
-		/// Scrolls to left cell (nearest).
+		/// Scroll to back Cell.
 		/// </summary>
-		public void ScrollToLeftCell() {
+		public void ScrollBack() {
 			int curId = CurrentId;
 			if (curId > 0) {
 				mForceTargetId = curId - 1;
 
 				if (mState == FocusState.IDLE) {
 					mState = FocusState.UPDATE_FOCUS;
-					KickMoveHorizontal(false);
+					KickMove(false);
 				}
 			}
 		}
 
 		/// <summary>
-		/// Scrolls to right cell (nearest).
+		/// Scroll to next Cell.
 		/// </summary>
-		public void ScrollToRightCell() {
+		public void ScrollNext() {
 			int curId = CurrentId;
 			if (curId < MaxId) {
 				mForceTargetId = curId + 1;
 
 				if (mState == FocusState.IDLE) {
 					mState = FocusState.UPDATE_FOCUS;
-					KickMoveHorizontal(true);
+					KickMove(true);
 				}
 			}
 		}
@@ -163,7 +199,7 @@ namespace StupidWizard.UI {
 				mForceTargetId = targetId;
 				if (mState == FocusState.IDLE) {
 					mState = FocusState.UPDATE_FOCUS;
-					KickMoveHorizontal(mForceTargetId > oldId);
+					KickMove(mForceTargetId > oldId);
 				}
 			}
 		} 
@@ -175,9 +211,15 @@ namespace StupidWizard.UI {
 		/// Kick the move horizontal start.
 		/// </summary>
 		/// <param name="isKickToRight">If set to <c>true</c> scroll to show right side.</param>
-		void KickMoveHorizontal(bool isKickToRight) {
+		void KickMove(bool isKickToRight) {
 			var contentPos = mContent.anchoredPosition;
-			contentPos.x += Epsinol * (isKickToRight? -1 : 1);
+
+			if (mScrollRect.horizontal) {
+				contentPos.x += Epsinol * (isKickToRight? -1 : 1);
+			} else {
+				contentPos.y += Epsinol * (isKickToRight? -1 : 1);
+			}
+
 			mContent.anchoredPosition = contentPos;
 		}
 
@@ -223,6 +265,18 @@ namespace StupidWizard.UI {
 		RectTransform mViewport {
 			get {
 				return (mScrollRect != null)? mScrollRect.viewport : null;
+			}
+		}
+
+		float mVelocityThreshold {
+			get {
+				return (mScrollRect != null && mScrollRect.horizontal)? mCellSize.x : mCellSize.y;
+			}
+		}
+
+		float mDeltaPosThreshold {
+			get {
+				return mVelocityThreshold * 0.01f;		// with fps = 100;
 			}
 		}
 	}
