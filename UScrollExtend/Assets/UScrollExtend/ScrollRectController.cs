@@ -260,11 +260,13 @@ namespace StupidWizard.UI {
 			get {
 				int maxId = 0;
 				if (mScrollRect.horizontal) {
-					float bound = mViewport.rect.width - mCellSize.x;
-					maxId = Mathf.Max(0, (int)((mContent.rect.width - bound)/mCellSize.x + 0.1f) - 1);
+					float sub = mViewport.rect.width - mCellSize.x;
+					float ext = (sub>0)? (sub % mCellSize.x) : sub;
+					maxId = Mathf.Max(0, (int)((mContent.rect.width - ext)/mCellSize.x + 0.1f) - 1);
 				} else {
-					float bound = mViewport.rect.height - mCellSize.y;
-					maxId = Mathf.Max(0, (int)((mContent.rect.height - bound)/mCellSize.y + 0.1f) - 1);
+					float sub = mViewport.rect.height - mCellSize.y;
+					float ext = (sub>0)? (sub % mCellSize.y) : sub;
+					maxId = Mathf.Max(0, (int)((mContent.rect.height - ext)/mCellSize.y + 0.1f) - 1);
 				}
 
 				return maxId;
@@ -293,6 +295,12 @@ namespace StupidWizard.UI {
 		float mDeltaPosThreshold {
 			get {
 				return mVelocityThreshold * 0.01f;		// with fps = 100;
+			}
+		}
+
+		public Vector2 CellSize {
+			get {
+				return mCellSize;
 			}
 		}
 	}
