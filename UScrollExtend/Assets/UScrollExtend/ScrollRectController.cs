@@ -235,10 +235,10 @@ namespace StupidWizard.UI {
 			get {
 				float targetIdFloat = 0;
 				if (mScrollRect.horizontal) {
-					float curPosX = mContent.localPosition.x;
+					float curPosX = mContent.anchoredPosition.x;
 					targetIdFloat = -curPosX / mCellSize.x;
 				} else {
-					float curPosY = mContent.localPosition.y;
+					float curPosY = mContent.anchoredPosition.y;
 					targetIdFloat = curPosY / mCellSize.y;
 				}
 
