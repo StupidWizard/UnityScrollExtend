@@ -44,6 +44,15 @@ namespace StupidWizard.UI {
 		[SerializeField]
 		Vector2 childPivot = Vector2.one * 0.5f;
 
+
+		public void SetupAll() {
+			LoadChildPointer();
+			SetupAnchorPivot();
+			Reposition();
+		}
+
+
+
 		public void LoadChildPointer() {
 			int nChild = scrollRect.content.childCount;
 			if (nChild > 0) {
@@ -55,6 +64,7 @@ namespace StupidWizard.UI {
 				listChild = null;
 			}
 		}
+
 
 
 		public void SetupAnchorPivot() {
@@ -86,7 +96,12 @@ namespace StupidWizard.UI {
 			}
 		}
 
+
+
+
+
 		public void Reposition() {
+			scrollRect.content.anchoredPosition = Vector2.zero;
 			if (IsHorizontal()) {
 				RepositionHorizontal();
 			} else {
@@ -99,8 +114,7 @@ namespace StupidWizard.UI {
 			float sub = scrollRect.viewport.rect.width - controller.CellSize.x;
 			float extend = (sub>0)? sub % controller.CellSize.x : sub;
 			float width = extend + listChild.Length * controller.CellSize.x;
-			scrollRect.content.sizeDelta = new Vector2(width, scrollRect.content.sizeDelta.y);
-			scrollRect.content.anchoredPosition = Vector2.zero;
+			scrollRect.content.sizeDelta = new Vector2(width, scrollRect.viewport.rect.height);
 
 			// child
 			extend = extend / 2.0f;
@@ -110,8 +124,21 @@ namespace StupidWizard.UI {
 		}
 
 		void RepositionVertical() {
-			
+			// content
+			float sub = scrollRect.viewport.rect.height - controller.CellSize.y;
+			float extend = (sub >0)? (sub % controller.CellSize.y) : sub;
+			float height = extend + listChild.Length * controller.CellSize.y;
+			scrollRect.content.sizeDelta = new Vector2(scrollRect.viewport.rect.width, height);
+
+			extend = extend / 2.0f;
+			for (int i = 0; i < listChild.Length; i++) {
+				listChild[i].anchoredPosition = new Vector2(0, extend + controller.CellSize.y * (i + 0.5f));
+			}
 		}
+
+
+
+
 
 		bool IsHorizontal() {
 			return (scrollRect.horizontal || !scrollRect.vertical);
@@ -126,6 +153,8 @@ namespace StupidWizard.UI {
 
 
 
+
+
 	#if UNITY_EDITOR
 	[CustomEditor(typeof(ScrollRectEditorSupport))]
 	public class ScrollRectEditorSupportEditor : Editor 
@@ -136,7 +165,7 @@ namespace StupidWizard.UI {
 
 			ScrollRectEditorSupport myScript = (ScrollRectEditorSupport)target;
 
-			var btnWidth = GUILayout.Width(120);
+			var btnWidth = GUILayout.Width(100);
 
 			GUILayout.BeginHorizontal();
 			GUILayout.Label("Load Child pointer");
@@ -159,6 +188,13 @@ namespace StupidWizard.UI {
 			GUILayout.Label("Set child position");
 			if (GUILayout.Button("Reposition", btnWidth)) {
 				myScript.Reposition();
+			}
+			GUILayout.EndHorizontal();
+
+			GUILayout.BeginHorizontal();
+			GUILayout.Label("Setup All");
+			if (GUILayout.Button("Setup All", GUILayout.Width(150))) {
+				myScript.SetupAll();
 			}
 			GUILayout.EndHorizontal();
 		}
