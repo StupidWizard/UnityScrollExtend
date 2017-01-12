@@ -70,7 +70,7 @@ namespace StupidWizard.UI {
 		public void SetupAnchorPivot() {
 			SetRectTransformAnchorPivot(scrollRect.GetComponent<RectTransform>(), 
 				ConstPivot.Center, ConstPivot.Center, ConstPivot.Center);
-			SetRectTransformAnchorPivot(scrollRect.viewport, Vector2.zero, Vector2.one, Vector2.zero);
+			SetRectTransformAnchorPivot(scrollRect.viewport, Vector2.zero, Vector2.one, ConstPivot.TopLeft);
 
 
 			if (IsHorizontal()) {
@@ -132,7 +132,7 @@ namespace StupidWizard.UI {
 
 			extend = extend / 2.0f;
 			for (int i = 0; i < listChild.Length; i++) {
-				listChild[i].anchoredPosition = new Vector2(0, extend + controller.CellSize.y * (i + 0.5f));
+				listChild[i].anchoredPosition = new Vector2(0, -extend - controller.CellSize.y * (i + 0.5f));
 			}
 		}
 
