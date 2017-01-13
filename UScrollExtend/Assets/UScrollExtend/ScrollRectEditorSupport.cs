@@ -7,6 +7,7 @@
 
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -39,7 +40,7 @@ namespace StupidWizard.UI {
 		}
 
 		[SerializeField]
-		RectTransform[] listChild;
+		List<RectTransform> listChild = new List<RectTransform>();
 
 		[SerializeField]
 		Vector2 childPivot = Vector2.one * 0.5f;
@@ -54,14 +55,12 @@ namespace StupidWizard.UI {
 
 
 		public void LoadChildPointer() {
+			listChild.Clear();
 			int nChild = scrollRect.content.childCount;
 			if (nChild > 0) {
-				listChild = new RectTransform[nChild];
 				for (int i = 0; i < nChild; i++) {
-					listChild[i] = scrollRect.content.GetChild(i).GetComponent<RectTransform>();
+					listChild.Add(scrollRect.content.GetChild(i).GetComponent<RectTransform>());
 				}
-			} else {
-				listChild = null;
 			}
 		}
 
@@ -110,29 +109,37 @@ namespace StupidWizard.UI {
 		}
 
 		void RepositionHorizontal() {
-			// content
-			float sub = scrollRect.viewport.rect.width - controller.CellSize.x;
-			float extend = (sub>0)? sub % controller.CellSize.x : sub;
-			float width = extend + listChild.Length * controller.CellSize.x;
-			scrollRect.content.sizeDelta = new Vector2(width, scrollRect.viewport.rect.height);
+			if (listChild.Count > 0) {
+				// content
+				float sub = scrollRect.viewport.rect.width - controller.CellSize.x;
+				float extend = (sub>0)? sub % controller.CellSize.x : sub;
+				float width = extend + listChild.Count * controller.CellSize.x;
+				scrollRect.content.sizeDelta = new Vector2(width, scrollRect.viewport.rect.height);
 
-			// child
-			extend = extend / 2.0f;
-			for (int i = 0; i < listChild.Length; i++) {
-				listChild[i].anchoredPosition = new Vector2(extend + controller.CellSize.x * (i + 0.5f), 0);
+				// child
+				extend = extend / 2.0f;
+				for (int i = 0; i < listChild.Count; i++) {
+					listChild[i].anchoredPosition = new Vector2(extend + controller.CellSize.x * (i + 0.5f), 0);
+				}
+			} else {
+				scrollRect.content.sizeDelta = scrollRect.viewport.rect.size;
 			}
 		}
 
 		void RepositionVertical() {
-			// content
-			float sub = scrollRect.viewport.rect.height - controller.CellSize.y;
-			float extend = (sub >0)? (sub % controller.CellSize.y) : sub;
-			float height = extend + listChild.Length * controller.CellSize.y;
-			scrollRect.content.sizeDelta = new Vector2(scrollRect.viewport.rect.width, height);
+			if (listChild.Count > 0) {
+				// content
+				float sub = scrollRect.viewport.rect.height - controller.CellSize.y;
+				float extend = (sub >0)? (sub % controller.CellSize.y) : sub;
+				float height = extend + listChild.Count * controller.CellSize.y;
+				scrollRect.content.sizeDelta = new Vector2(scrollRect.viewport.rect.width, height);
 
-			extend = extend / 2.0f;
-			for (int i = 0; i < listChild.Length; i++) {
-				listChild[i].anchoredPosition = new Vector2(0, -extend - controller.CellSize.y * (i + 0.5f));
+				extend = extend / 2.0f;
+				for (int i = 0; i < listChild.Count; i++) {
+					listChild[i].anchoredPosition = new Vector2(0, -extend - controller.CellSize.y * (i + 0.5f));
+				}
+			} else {
+				scrollRect.content.sizeDelta = scrollRect.viewport.rect.size;
 			}
 		}
 
